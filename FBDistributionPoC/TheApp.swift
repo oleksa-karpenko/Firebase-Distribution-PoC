@@ -8,7 +8,7 @@
 import SwiftUI
 
 @main
-struct FBDistributionPoCApp: App {
+struct TheApp: App {
     var body: some Scene {
         WindowGroup {
             ContentView()

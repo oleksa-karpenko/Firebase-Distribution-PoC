@@ -1,0 +1,11 @@
+//
+//  Config.xcconfig
+//  FBDistributionPoC
+//
+//  Created by Oleksandr Karpenko on 12.06.2025.
+//
+
+// Configuration settings file format documentation can be found at:
+// https://developer.apple.com/documentation/xcode/adding-a-build-configuration-file-to-your-project
+VERSION = 0.0.1
+BUILD_NUMBER = 4
