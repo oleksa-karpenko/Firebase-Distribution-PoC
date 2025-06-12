@@ -1,0 +1,5 @@
+# Firebase Distribution (PoC)
+
+What was new:
+- First release
+- Next release
