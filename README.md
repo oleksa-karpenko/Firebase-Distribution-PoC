@@ -136,3 +136,25 @@ Then source the file in your script:
 source .env
 ```
 
+## Using Makefile as the build system
+
+**prerequisites:**
+- fzf tool: https://github.com/junegunn/fzf
+	- **install:** `brew install fzf`
+
+Alias for automating target selection
+```sh
+# ~/.zshrc
+alias gomake='make -pRrq -f Makefile : 2>/dev/null \
+    | awk -F: '\''/^[a-zA-Z0-9][^$#\/\t=]*:/{print $1}'\'' \
+    | grep -vE "^[^[:alnum:]]|^[Mm]ake|^CONFIG_FILE|^MAKE|^CURDIR|^SUFFIXES" \
+    | sort -u \
+    | fzf \
+    | xargs make'
+```
+
+usage:
+```sh
+gomake
+```
+

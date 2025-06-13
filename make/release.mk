@@ -1,4 +1,4 @@
-# Make Releases
+# Release Routines
 
 # Files
 APP_NAME="FBDistributionPoC"
@@ -21,49 +21,78 @@ IPA_FILE="./build/$(APP_NAME).ipa"
 
 # Show generic statistics on the codebase
 stat:
-	@echo "STAT:"
-	@make v-get
-	@echo "--------------------------------------------------"
-	@echo "LOC (excluding *.g.dart and *.mocks.dart files)"
-	@echo "Lib:   $$(find lib  -name '*.dart' ! -name '*.g.dart' ! -name '*.mocks.dart' | xargs wc -l | tail -n 1 | awk '{print $$1}')"
-	@echo "Tests: $$(find test -name '*.dart' ! -name '*.g.dart' ! -name '*.mocks.dart' | xargs wc -l | tail -n 1 | awk '{print $$1}')"
-	@echo "--------------------------------------------------"
-	@echo "5 biggest files in the repository"
-	@find lib  -name '*.swift' ! -name '*.g.dart' ! -name '*.mocks.dart' -exec wc -l '{}' \+ 2>/dev/null | sort -r --human-numeric-sort | head -n 6
-	@echo "--------------------------------------------------"
-	@echo "DONE"
+	@echo "📊 PROJECT STATISTICS"
+	@echo "────────────────────────────────────────────────────────"
+
+	@echo "📦 Swift Files (excluding generated and tests)"
+	@find . -name '*.swift' ! -name '*Generated*' ! -path '*Tests*' -exec wc -l {} \+ | awk '{s+=$$1} END {print "LOC: ", s}'
+
+	@echo "🧪 Test Files"
+	@find . -name '*Tests.swift' -exec wc -l {} \+ | awk '{s+=$$1} END {print "Test LOC: ", s}'
+
+	@echo "📦 Total Swift Files"
+	@find . -name '*.swift' | wc -l | xargs -I{} echo "Swift files:	{}"
+
+	@echo "────────────────────────────────────────────────────────"
+	@echo "🧱 Top 5 Largest Swift Files (by LOC)"
+	@find . -name '*.swift' -exec wc -l {} \+ 2>/dev/null | sort -rn | head -n 5
+
+	@echo "────────────────────────────────────────────────────────"
+	@echo "✅ DONE"
 
 
 # ----------------------------------------------------------------------------
 # IOS BUILD AND DISTRIBUTION
 
 # Clean the project. Do this before making the Archive
-r-clean:
-	xcodebuild clean -project "$(XC_PROJ_NAME)" -scheme "$(XC_PROJ_SCHEMA)" -configuration "$(XC_PROJ_CONFIG)"
+release-clean:
+	@echo "🧹 Cleaning the project..."
+	@xcodebuild clean -project "$(XC_PROJ_NAME)" -scheme "$(XC_PROJ_SCHEMA)" -configuration "$(XC_PROJ_CONFIG)"
+	@echo "🧹 Cleaning the build output..."
+	@rm -rf "$(BUILD_OUTPUT)"
+	@echo "✅ DONE"
 
 # Make an iOS Archive, when done you can find it in the ./build folder
-r-arch:
-	xcodebuild archive \
+release-arch:
+	@echo "📦 Archiving app to $(ARCHIVE)..."
+	@xcodebuild archive \
 		-project "$(XC_PROJ_NAME)" \
 		-scheme "$(XC_PROJ_SCHEMA)" \
 		-archivePath "$(ARCHIVE)" \
 		-configuration "$(XC_PROJ_CONFIG)" \
 		-destination 'generic/platform=iOS'
+	@echo "📦 DONE"
 
 # Export ipa from the archive. IPA file will be in the same folder as archive (./build)
-r-ipa:
-	xcodebuild -exportArchive \
-	-archivePath $(ARCHIVE) \
-	-exportOptionsPlist ./ExportOptions.plist \
-	-exportPath $(BUILD_OUTPUT) \
-	-allowProvisioningUpdates
+release-ipa:
+	@echo "📱 Exporting IPA to $(BUILD_OUTPUT)..."
+	@if [ ! -d "$(ARCHIVE)" ]; then \
+		echo "❌ Archive not found: $(ARCHIVE)"; exit 1; \
+	fi
+	@xcodebuild -exportArchive \
+		-archivePath $(ARCHIVE) \
+		-exportOptionsPlist ./ExportOptions.plist \
+		-exportPath $(BUILD_OUTPUT) \
+		-allowProvisioningUpdates
+	@echo "✅ DONE"
 
 
 # Distribute to the Firebase. Do not forget to have updated Release-Notes.txt
-r-distr:
-	firebase appdistribution:distribute $(IPA_FILE) \
-		--app $(FB_APP_ID) \
-		--release-notes-file $(RELEASE_NOTES_FILE) \
-		--groups $(FB_TESTER_GROUP) \
-		--token "$(FB_TOKEN)"
+release-distr:
+	@echo "🚀 Distributing IPA via Firebase App Distribution..."
+	@if [ ! -f "$(IPA_FILE)" ]; then \
+		echo "❌ IPA file not found: $(IPA_FILE)"; exit 1; \
+	fi
+	@if [ ! -f "$(RELEASE_NOTES_FILE)" ]; then \
+		echo "❌ Release notes not found: $(RELEASE_NOTES_FILE)"; exit 1; \
+	fi
+	# @firebase appdistribution:distribute $(IPA_FILE) \
+	# 	--app $(FB_APP_ID) \
+	# 	--release-notes-file $(RELEASE_NOTES_FILE) \
+	# 	--groups $(FB_TESTER_GROUP) \
+	# 	--token "$(FB_TOKEN)"
+	@echo "✅ DONE"
 
+# Run the full release pipeline
+release-full: release-clean release-arch release-ipa release-distr
+	@echo "🎉 Release process completed successfully!"

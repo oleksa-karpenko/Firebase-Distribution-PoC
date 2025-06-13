@@ -1,5 +1,6 @@
 # Firebase Distribution (PoC)
 
 What was new:
-- First release
+- Added Tests
 - Next release
+- First release

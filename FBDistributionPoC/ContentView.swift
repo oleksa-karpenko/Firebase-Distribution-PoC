@@ -8,25 +8,25 @@
 import SwiftUI
 
 struct ContentView: View {
+    var model: ContentViewModeling
+    
     var body: some View {
         VStack {
             Spacer()
-            Image(systemName: "globe")
+            Image(systemName: model.getImageName())
                 .imageScale(.large)
                 .foregroundStyle(.tint)
-            Text("Hello, world!")
+            Text(model.getTitle())
                 .font(.largeTitle)
-            Text("Playing with the Firebase Distribution!")
+            Text(model.getSubTitle())
                 .font(.subheadline)
             Spacer()
-            Text("Version: 0.0.1")
-            
-
+            Text(model.getVersion())
+                .font(.caption)
         }
         .padding()
     }
 }
-
 #Preview {
-    ContentView()
+    ContentView(model: ContentViewModel())
 }
